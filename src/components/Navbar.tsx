@@ -18,26 +18,24 @@ function classNames(...classes: string[]) {
 
 export default function Navbar() {
   return (
-    <Disclosure as="nav" className="bg-white shadow">
-      {({ open }) => (
+    <Disclosure as="nav" style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderBottom: '4px solid #990000' }}>
+      {({ open }: { open: boolean }) => (
         <>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex flex-shrink-0 items-center">
-                  <span className="text-2xl font-bold text-indigo-600">CollegeMarket</span>
+                  <span style={{ color: '#011F5B', fontWeight: 'bold', fontSize: '2rem' }}>Penn Market</span>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                   {navigation.map((item) => (
                     <a
                       key={item.name}
                       href={item.href}
-                      className={classNames(
-                        item.current
-                          ? 'border-indigo-500 text-gray-900'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-                        'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
-                      )}
+                      className="inline-flex items-center px-1 pt-1 text-sm font-medium"
+                      style={item.current
+                        ? { color: '#990000' }
+                        : { color: '#011F5B' }}
                     >
                       {item.name}
                     </a>
@@ -51,12 +49,13 @@ export default function Navbar() {
                   </label>
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      <MagnifyingGlassIcon style={{ color: '#011F5B' }} className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <input
                       id="search"
                       name="search"
-                      className="block w-full rounded-md border-0 bg-white py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 sm:text-sm sm:leading-6"
+                      style={{ backgroundColor: '#FFFFFF', color: '#011F5B', border: '1px solid #990000', outlineColor: '#990000' }}
                       placeholder="Search items..."
                       type="search"
                     />
@@ -64,12 +63,15 @@ export default function Navbar() {
                 </div>
               </div>
               <div className="flex items-center lg:hidden">
-                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                <Disclosure.Button
+                  className="inline-flex items-center justify-center rounded-md p-2"
+                  style={{ color: '#011F5B', backgroundColor: open ? '#990000' : '#FFFFFF' }}
+                >
                   <span className="sr-only">Open main menu</span>
                   {open ? (
-                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                    <XMarkIcon style={{ color: open ? '#FFFFFF' : '#011F5B' }} className="block h-6 w-6" aria-hidden="true" />
                   ) : (
-                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                    <Bars3Icon style={{ color: '#011F5B' }} className="block h-6 w-6" aria-hidden="true" />
                   )}
                 </Disclosure.Button>
               </div>
