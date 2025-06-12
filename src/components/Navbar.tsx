@@ -4,6 +4,7 @@ import { Fragment } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useUser } from '@/context/UserContext';
 
 const navigation = [
   { name: 'Home', href: '/', current: true },
@@ -16,7 +17,12 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export default function Navbar() {
+interface NavbarProps {
+  onLoginClick?: () => void;
+}
+
+export default function Navbar({ onLoginClick }: NavbarProps) {
+  const { user } = useUser();
   return (
     <Disclosure as="nav" style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderBottom: '4px solid #990000' }}>
       {({ open }: { open: boolean }) => (
@@ -62,6 +68,78 @@ export default function Navbar() {
                   </div>
                 </div>
               </div>
+              <div className="hidden lg:ml-4 lg:flex lg:items-center">
+                {user ? (
+                  <Menu as="div" className="relative ml-4 flex-shrink-0">
+                    <div>
+                      <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        <span className="sr-only">Open user menu</span>
+                        <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#011F5B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
+                          {user.displayName ? user.displayName[0] : 'U'}
+                        </div>
+                      </Menu.Button>
+                    </div>
+                    <Transition
+                      as={Fragment}
+                      enter="transition ease-out duration-100"
+                      enterFrom="transform opacity-0 scale-95"
+                      enterTo="transform opacity-100 scale-100"
+                      leave="transition ease-in duration-75"
+                      leaveFrom="transform opacity-100 scale-100"
+                      leaveTo="transform opacity-0 scale-95"
+                    >
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Item>
+                          {({ active }: { active: boolean }) => (
+                            <a
+                              href="/profile"
+                              className={classNames(
+                                active ? 'bg-gray-100' : '',
+                                'block px-4 py-2 text-sm text-gray-700'
+                              )}
+                            >
+                              Your Profile
+                            </a>
+                          )}
+                        </Menu.Item>
+                        <Menu.Item>
+                          {({ active }: { active: boolean }) => (
+                            <a
+                              href="/settings"
+                              className={classNames(
+                                active ? 'bg-gray-100' : '',
+                                'block px-4 py-2 text-sm text-gray-700'
+                              )}
+                            >
+                              Settings
+                            </a>
+                          )}
+                        </Menu.Item>
+                        <Menu.Item>
+                          {({ active }: { active: boolean }) => (
+                            <a
+                              href="#"
+                              className={classNames(
+                                active ? 'bg-gray-100' : '',
+                                'block px-4 py-2 text-sm text-gray-700'
+                              )}
+                            >
+                              Sign out
+                            </a>
+                          )}
+                        </Menu.Item>
+                      </Menu.Items>
+                    </Transition>
+                  </Menu>
+                ) : (
+                  <button
+                    onClick={onLoginClick}
+                    style={{ backgroundColor: '#990000', color: '#fff', padding: '8px 20px', borderRadius: 6, fontWeight: 600, textDecoration: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    Login
+                  </button>
+                )}
+              </div>
               <div className="flex items-center lg:hidden">
                 <Disclosure.Button
                   className="inline-flex items-center justify-center rounded-md p-2"
@@ -74,69 +152,6 @@ export default function Navbar() {
                     <Bars3Icon style={{ color: '#011F5B' }} className="block h-6 w-6" aria-hidden="true" />
                   )}
                 </Disclosure.Button>
-              </div>
-              <div className="hidden lg:ml-4 lg:flex lg:items-center">
-                <Menu as="div" className="relative ml-4 flex-shrink-0">
-                  <div>
-                    <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                      <span className="sr-only">Open user menu</span>
-                      <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <span className="text-indigo-600 font-medium">U</span>
-                      </div>
-                    </Menu.Button>
-                  </div>
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-100"
-                    enterFrom="transform opacity-0 scale-95"
-                    enterTo="transform opacity-100 scale-100"
-                    leave="transition ease-in duration-75"
-                    leaveFrom="transform opacity-100 scale-100"
-                    leaveTo="transform opacity-0 scale-95"
-                  >
-                    <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <a
-                            href="/profile"
-                            className={classNames(
-                              active ? 'bg-gray-100' : '',
-                              'block px-4 py-2 text-sm text-gray-700'
-                            )}
-                          >
-                            Your Profile
-                          </a>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <a
-                            href="/settings"
-                            className={classNames(
-                              active ? 'bg-gray-100' : '',
-                              'block px-4 py-2 text-sm text-gray-700'
-                            )}
-                          >
-                            Settings
-                          </a>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <a
-                            href="#"
-                            className={classNames(
-                              active ? 'bg-gray-100' : '',
-                              'block px-4 py-2 text-sm text-gray-700'
-                            )}
-                          >
-                            Sign out
-                          </a>
-                        )}
-                      </Menu.Item>
-                    </Menu.Items>
-                  </Transition>
-                </Menu>
               </div>
             </div>
           </div>

@@ -1,5 +1,10 @@
+'use client';
+
 import Image from "next/image";
 import Navbar from '@/components/Navbar';
+import { useUser } from '@/context/UserContext';
+import Login from '@/components/Login';
+import React, { useState } from 'react';
 
 const featuredItems = [
   {
@@ -42,9 +47,25 @@ const categories = [
 ];
 
 export default function Home() {
+  const { user, loading } = useUser();
+  const [loginOpen, setLoginOpen] = useState(false);
+  if (loading) return null;
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar onLoginClick={() => setLoginOpen(true)} />
+      {loginOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'relative', zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={() => setLoginOpen(false)}
+              style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#011F5B', fontSize: 32, fontWeight: 700, cursor: 'pointer', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+              aria-label="Close login modal"
+            >
+              ×
+            </button>
+            <Login onSuccess={() => setLoginOpen(false)} />
+          </div>
+        </div>
+      )}
       
       {/* Hero Section */}
       <div style={{ backgroundColor: '#011F5B', color: '#FFFFFF' }} className="relative">
