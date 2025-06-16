@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '@/lib/firebaseAuth';
+import { getAuth } from 'firebase/auth';
 
 export default function Login({ onSuccess }: { onSuccess?: () => void }) {
   const [isSignup, setIsSignup] = useState(false);
@@ -14,8 +15,23 @@ export default function Login({ onSuccess }: { onSuccess?: () => void }) {
     setError('');
     setLoading(true);
     try {
+      let userCredential;
       if (isSignup) {
-        await signUpWithEmail(email, password);
+        userCredential = await signUpWithEmail(email, password);
+        // Create user in DB
+        const user = getAuth().currentUser;
+        if (user) {
+          await fetch('/api/users/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              uid: user.uid,
+              name: user.displayName || '',
+              email: user.email,
+              photoURL: user.photoURL || '',
+            }),
+          });
+        }
       } else {
         await signInWithEmail(email, password);
       }
@@ -31,7 +47,21 @@ export default function Login({ onSuccess }: { onSuccess?: () => void }) {
     setError('');
     setLoading(true);
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      // Create user in DB
+      const user = getAuth().currentUser;
+      if (user) {
+        await fetch('/api/users/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            uid: user.uid,
+            name: user.displayName || '',
+            email: user.email,
+            photoURL: user.photoURL || '',
+          }),
+        });
+      }
       if (onSuccess) onSuccess();
     } catch (err: any) {
       setError(err.message || 'Google sign-in failed');

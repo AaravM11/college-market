@@ -5,6 +5,7 @@ import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useUser } from '@/context/UserContext';
+import { logout } from '@/lib/firebaseAuth';
 
 const navigation = [
   { name: 'Home', href: '/', current: true },
@@ -117,15 +118,15 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
                         </Menu.Item>
                         <Menu.Item>
                           {({ active }: { active: boolean }) => (
-                            <a
-                              href="#"
+                            <button
+                              onClick={logout}
                               className={classNames(
                                 active ? 'bg-gray-100' : '',
-                                'block px-4 py-2 text-sm text-gray-700'
+                                'block w-full text-left px-4 py-2 text-sm text-gray-700'
                               )}
                             >
                               Sign out
-                            </a>
+                            </button>
                           )}
                         </Menu.Item>
                       </Menu.Items>

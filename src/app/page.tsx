@@ -101,7 +101,7 @@ export default function Home() {
           {categories.map((category) => (
             <a
               key={category.name}
-              href={`/category/${category.name.toLowerCase()}`}
+              href={`/category/${encodeURIComponent(category.name)}`}
               style={{ backgroundColor: '#FFFFFF', color: '#011F5B', border: '1px solid #011F5B' }}
               className="flex flex-col items-center justify-center p-4 rounded-lg shadow-sm hover:opacity-90 transition-shadow duration-200"
             >
