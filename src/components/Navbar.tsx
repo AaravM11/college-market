@@ -50,24 +50,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
                 </div>
               </div>
               <div className="flex flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end">
-                <div className="w-full max-w-lg lg:max-w-xs">
-                  <label htmlFor="search" className="sr-only">
-                    Search
-                  </label>
-                  <div className="relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <MagnifyingGlassIcon style={{ color: '#011F5B' }} className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <input
-                      id="search"
-                      name="search"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 sm:text-sm sm:leading-6"
-                      style={{ backgroundColor: '#FFFFFF', color: '#011F5B', border: '1px solid #990000', outlineColor: '#990000' }}
-                      placeholder="Search items..."
-                      type="search"
-                    />
-                  </div>
-                </div>
+                {/* Search bar removed */}
               </div>
               <div className="hidden lg:ml-4 lg:flex lg:items-center">
                 {user ? (

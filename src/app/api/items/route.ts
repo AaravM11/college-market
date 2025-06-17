@@ -19,9 +19,17 @@ export async function GET(req: NextRequest) {
     const usersCollection = await getUsersCollection();
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
+    const search = searchParams.get('search');
     const filter: any = {};
     if (category && allowedCategories.includes(category)) {
       filter.category = category;
+    }
+    if (search) {
+      // Case-insensitive partial match on title or description
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
     }
     const items = await collection.find(filter).toArray();
     // Attach user info to each item
