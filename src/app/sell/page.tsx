@@ -27,6 +27,10 @@ export default function SellPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const maxImages = 5;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -41,11 +45,55 @@ export default function SellPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + imageFiles.length > maxImages) {
+      setError(`You can upload up to ${maxImages} images.`);
+      return;
+    }
+    setUploadingImages(true);
+    setError(null);
+    const newUrls: string[] = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'unsigned-market');
+      try {
+        const res = await fetch('https://api.cloudinary.com/v1_1/da1t8wmax/image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.secure_url) newUrls.push(data.secure_url);
+      } catch (err) {
+        setError('Image upload failed.');
+      }
+    }
+    setImageFiles(prev => [...prev, ...files]);
+    setImageUrls(prev => [...prev, ...newUrls]);
+    setUploadingImages(false);
+  };
+
+  const handleRemoveImage = (idx: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== idx));
+    setImageUrls(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleClearImages = () => {
+    setImageFiles([]);
+    setImageUrls([]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setMessage(null);
     setError(null);
+    if (uploadingImages) {
+      setError('Please wait for images to finish uploading.');
+      setSubmitting(false);
+      return;
+    }
     try {
       const res = await fetch('/api/items', {
         method: 'POST',
@@ -56,12 +104,15 @@ export default function SellPage() {
           category: form.category,
           description: form.description,
           userId: user?.uid,
+          imageUrls,
         }),
       });
       const data = await res.json();
       if (data.success) {
         setMessage('Item listed successfully!');
         setForm({ title: '', price: '', category: allowedCategories[0], description: '' });
+        setImageFiles([]);
+        setImageUrls([]);
       } else {
         setError(data.error || 'Failed to list item.');
       }
@@ -130,6 +181,44 @@ export default function SellPage() {
               rows={4}
               className="w-full border border-gray-300 rounded px-3 py-2"
             />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1" htmlFor="image">Product Images (up to 5)</label>
+            <input
+              id="image"
+              name="image"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+              disabled={imageFiles.length >= maxImages}
+            />
+            {uploadingImages && <div className="text-sm text-gray-500 mt-1">Uploading images...</div>}
+            {imageUrls.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-2">
+                {imageUrls.map((url, idx) => (
+                  <div key={url} className="relative group">
+                    <img src={url} alt="Preview" className="rounded max-h-32 border" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full px-2 py-0.5 text-xs font-bold text-red-700 shadow group-hover:opacity-100 opacity-80"
+                      aria-label="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleClearImages}
+                  className="ml-2 px-3 py-1 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300"
+                >
+                  Clear All
+                </button>
+              </div>
+            )}
           </div>
           <button
             type="submit"

@@ -1,5 +1,5 @@
 import Navbar from '@/components/Navbar';
-import Image from 'next/image';
+import ProductImageCarousel from '@/components/ProductImageCarousel';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 
@@ -36,6 +36,7 @@ export default async function CategoryPage({ params }: { params: { category: str
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {items.map((item: any) => (
               <div key={item._id} className="bg-white rounded-lg shadow p-5 flex flex-col gap-3">
+                <ProductImageCarousel imageUrls={item.imageUrls} alt={item.title} />
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold mb-1" style={{ color: '#011F5B' }}>{item.title}</h2>
                   <div className="text-lg font-bold mb-2" style={{ color: '#990000' }}>${item.price}</div>

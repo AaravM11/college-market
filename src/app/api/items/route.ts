@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
     const userMap = Object.fromEntries(users.map(u => [u.uid, u]));
     const itemsWithUser = items.map(item => ({
       ...item,
+      imageUrls: Array.isArray(item.imageUrls) ? item.imageUrls : [],
       user: userMap[item.userId]
         ? {
             name: userMap[item.userId].name,
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
-    const { title, price, category, description, userId } = data;
+    const { title, price, category, description, userId, imageUrls } = data;
     if (
       !title ||
       typeof title !== 'string' ||
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
       category,
       description,
       userId,
+      imageUrls: Array.isArray(imageUrls) ? imageUrls : [],
       createdAt: new Date(),
     };
     const result = await collection.insertOne(itemDoc);
