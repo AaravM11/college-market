@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
             name: userMap[item.userId].name,
             email: userMap[item.userId].email,
             photoURL: userMap[item.userId].photoURL || null,
+            contactInfo: userMap[item.userId].contactInfo || null,
           }
         : null,
     }));

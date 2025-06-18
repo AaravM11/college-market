@@ -1,9 +1,8 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import Navbar from '@/components/Navbar';
 import ProductImageCarousel from '@/components/ProductImageCarousel';
-import { useEffect } from 'react';
 import Modal from 'react-modal';
 
 const allowedCategories = [
@@ -18,7 +17,7 @@ const allowedCategories = [
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
-  const [tab, setTab] = useState<'items' | 'settings'>('items');
+  const [tab, setTab] = useState<'items' | 'settings' | 'contact'>('items');
   const [items, setItems] = useState<any[]>([]);
   const [fetching, setFetching] = useState(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
@@ -111,6 +110,12 @@ export default function ProfilePage() {
             >
               Settings
             </button>
+            <button
+              className={`text-left px-3 py-2 rounded font-semibold ${tab === 'contact' ? 'bg-[#011F5B] text-white' : 'bg-gray-100 text-[#011F5B]'}`}
+              onClick={() => setTab('contact')}
+            >
+              Contact Info
+            </button>
           </nav>
         </div>
         {/* Right content column */}
@@ -149,6 +154,9 @@ export default function ProfilePage() {
               <h1 className="text-2xl font-bold mb-6" style={{ color: '#011F5B' }}>Settings</h1>
               <div className="text-gray-600">Settings form coming soon.</div>
             </div>
+          )}
+          {tab === 'contact' && (
+            <ContactInfoForm />
           )}
         </div>
       </div>
@@ -211,5 +219,74 @@ export default function ProfilePage() {
         </div>
       </Modal>
     </>
+  );
+}
+
+function ContactInfoForm() {
+  const { user } = useUser();
+  const [phone, setPhone] = useState(user?.contactInfo?.phone || '');
+  const [message, setMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setPhone(user?.contactInfo?.phone || '');
+  }, [user?.contactInfo?.phone]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...user, contactInfo: { phone } }),
+      });
+      if (response.ok) {
+        setMessage('Contact information updated successfully!');
+      } else {
+        setMessage('Failed to update contact information.');
+      }
+    } catch (err) {
+      setMessage('Failed to update contact information.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl px-4 py-8">
+      <h1 style={{ color: '#011F5B' }} className="text-2xl font-bold mb-6">Contact Information</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            value={user?.email || ''}
+            readOnly
+            className="mt-1 block w-full rounded-md border-gray-200 bg-gray-100 shadow-sm sm:text-sm cursor-not-allowed"
+          />
+        </div>
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
+          <input
+            type="text"
+            id="phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          disabled={saving}
+        >
+          {saving ? 'Saving...' : 'Save'}
+        </button>
+        {message && <div className="mt-2 text-sm text-gray-700">{message}</div>}
+      </form>
+    </div>
   );
 } 

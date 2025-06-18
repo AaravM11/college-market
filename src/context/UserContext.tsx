@@ -4,20 +4,56 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebaseAuth';
 
+interface ContactInfo {
+  email: string;
+  phone?: string;
+}
+
+interface AppUser {
+  uid: string;
+  name: string;
+  email: string;
+  photoURL?: string;
+  contactInfo?: ContactInfo;
+}
+
 interface UserContextType {
-  user: User | null;
+  user: AppUser | null;
   loading: boolean;
 }
 
 const UserContext = createContext<UserContextType>({ user: null, loading: true });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch full user profile from backend
+        let contactInfo = undefined;
+        try {
+          const res = await fetch(`/api/users?uid=${firebaseUser.uid}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.user && data.user.contactInfo) {
+              contactInfo = data.user.contactInfo;
+            }
+          }
+        } catch (e) {
+          // ignore fetch errors, fallback to auth info only
+        }
+        setUser({
+          uid: firebaseUser.uid,
+          name: firebaseUser.displayName || '',
+          email: firebaseUser.email || '',
+          photoURL: firebaseUser.photoURL || undefined,
+          contactInfo,
+        });
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();

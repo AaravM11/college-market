@@ -59,7 +59,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
                       <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         <span className="sr-only">Open user menu</span>
                         <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#011F5B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
-                          {user.displayName ? user.displayName[0] : 'U'}
+                          {user.name ? user.name[0] : 'U'}
                         </div>
                       </Menu.Button>
                     </div>

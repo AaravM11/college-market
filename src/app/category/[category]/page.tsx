@@ -43,18 +43,12 @@ export default async function CategoryPage({ params }: { params: { category: str
                   <div className="text-gray-700 mb-2">{item.description.length > 100 ? item.description.slice(0, 100) + '…' : item.description}</div>
                 </div>
                 {item.user && (
-                  <div className="flex items-center gap-3 mt-2 border-t pt-3">
-                    {item.user.photoURL ? (
-                      <img src={item.user.photoURL} alt={item.user.name} width={40} height={40} className="rounded-full object-cover" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-500">
-                        {item.user.name ? item.user.name[0] : '?'}
-                      </div>
+                  <div>
+                    <div className="font-semibold" style={{ color: '#011F5B' }}>{item.user.name}</div>
+                    <div className="text-sm text-gray-600">{item.user.email}</div>
+                    {item.user.contactInfo?.phone && (
+                      <div className="text-sm text-gray-600">{item.user.contactInfo.phone}</div>
                     )}
-                    <div>
-                      <div className="font-semibold" style={{ color: '#011F5B' }}>{item.user.name}</div>
-                      <div className="text-sm text-gray-600">{item.user.email}</div>
-                    </div>
                   </div>
                 )}
               </div>
