@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '@/lib/firebaseAuth';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut, sendEmailVerification } from 'firebase/auth';
 import { useUser } from '@/context/UserContext';
 
 export default function Login({ onSuccess, initialError, initialIsSignup }: { onSuccess?: () => void, initialError?: string, initialIsSignup?: boolean }) {
@@ -13,6 +13,8 @@ export default function Login({ onSuccess, initialError, initialIsSignup }: { on
   const [phone, setPhone] = useState('');
   const [error, setError] = useState(initialError || '');
   const [loading, setLoading] = useState(false);
+  const [showVerifyNotice, setShowVerifyNotice] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   React.useEffect(() => {
     if (initialError) setError(initialError);
@@ -28,11 +30,12 @@ export default function Login({ onSuccess, initialError, initialIsSignup }: { on
     e.preventDefault();
     setError('');
     setLoading(true);
+    setShowVerifyNotice(false);
     try {
       let userCredential;
       if (isSignup) {
         if (!isUpennEmail(email)) {
-          setError('You must use a valid UPenn email address to sign up.');
+          setError('You must use a valid UPenn email address to access the market.');
           setLoading(false);
           return;
         }
@@ -42,9 +45,10 @@ export default function Login({ onSuccess, initialError, initialIsSignup }: { on
           return;
         }
         userCredential = await signUpWithEmail(email, password);
-        // Create user in DB
         const user = getAuth().currentUser;
         if (user) {
+          await sendEmailVerification(user);
+          setShowVerifyNotice(true);
           await fetch('/api/users/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -57,8 +61,19 @@ export default function Login({ onSuccess, initialError, initialIsSignup }: { on
             }),
           });
         }
+        setLoading(false);
+        return;
       } else {
         await signInWithEmail(email, password);
+        const user = getAuth().currentUser;
+        if (user && !user.emailVerified) {
+          setError('Please verify your email before logging in.');
+          setShowVerifyNotice(true);
+          await signOut(getAuth());
+          setUser(null);
+          setLoading(false);
+          return;
+        }
       }
       if (onSuccess) onSuccess();
     } catch (err: any) {
@@ -100,6 +115,24 @@ export default function Login({ onSuccess, initialError, initialIsSignup }: { on
       setError(err.message || 'Google sign-in failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendLoading(true);
+    setError('');
+    try {
+      const user = getAuth().currentUser;
+      if (user) {
+        await sendEmailVerification(user);
+        setShowVerifyNotice(true);
+      } else {
+        setError('No user found to resend verification.');
+      }
+    } catch (err: any) {
+      setError('Failed to resend verification email.');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -171,6 +204,15 @@ export default function Login({ onSuccess, initialError, initialIsSignup }: { on
           {isSignup ? 'Login' : 'Sign Up'}
         </button>
       </div>
+      {showVerifyNotice && (
+        <div style={{ color: '#011F5B', background: '#E5E5E5', borderRadius: 6, padding: 12, marginBottom: 12, textAlign: 'center' }}>
+          Please check your email and verify your account before logging in.
+          <br />
+          <button type="button" onClick={handleResendVerification} disabled={resendLoading} style={{ marginTop: 8, background: '#fff', color: '#011F5B', border: '1px solid #011F5B', padding: '6px 16px', borderRadius: 6, fontWeight: 600 }}>
+            {resendLoading ? 'Resending...' : 'Resend Verification Email'}
+          </button>
+        </div>
+      )}
     </form>
   );
 } 

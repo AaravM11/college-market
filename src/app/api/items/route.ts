@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
+    const userId = searchParams.get('userId');
     const filter: any = {};
     if (category && allowedCategories.includes(category)) {
       filter.category = category;
@@ -30,6 +31,9 @@ export async function GET(req: NextRequest) {
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
       ];
+    }
+    if (userId) {
+      filter.userId = userId;
     }
     const items = await collection.find(filter).toArray();
     // Attach user info to each item
