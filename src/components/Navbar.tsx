@@ -6,6 +6,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useUser } from '@/context/UserContext';
 import { logout } from '@/lib/firebaseAuth';
+import { useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Home', href: '/', current: true },
@@ -24,6 +25,13 @@ interface NavbarProps {
 
 export default function Navbar({ onLoginClick }: NavbarProps) {
   const { user } = useUser();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+
   return (
     <Disclosure as="nav" style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderBottom: '4px solid #990000' }}>
       {({ open }: { open: boolean }) => (
@@ -89,7 +97,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
                         <Menu.Item>
                           {({ active }: { active: boolean }) => (
                             <button
-                              onClick={logout}
+                              onClick={handleLogout}
                               className={classNames(
                                 active ? 'bg-gray-100' : '',
                                 'block w-full text-left px-4 py-2 text-sm text-gray-700'

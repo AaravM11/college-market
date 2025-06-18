@@ -4,7 +4,8 @@ import Image from "next/image";
 import Navbar from '@/components/Navbar';
 import { useUser } from '@/context/UserContext';
 import Login from '@/components/Login';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const featuredItems = [
   {
@@ -48,8 +49,29 @@ const categories = [
 
 export default function Home() {
   const { user, loading } = useUser();
+  const searchParams = useSearchParams();
   const [loginOpen, setLoginOpen] = useState(false);
+  const router = useRouter();
+  useEffect(() => {
+    if (searchParams.get('login') === '1') {
+      setLoginOpen(true);
+    }
+  }, [searchParams]);
   if (loading) return null;
+
+  const handleCategoryClick = (category: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) {
+      if (window.location.search.includes('login=1')) {
+        window.location.reload();
+      } else {
+        router.push('/?login=1');
+      }
+    } else {
+      router.push(`/category/${encodeURIComponent(category)}`);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar onLoginClick={() => setLoginOpen(true)} />
@@ -95,45 +117,20 @@ export default function Home() {
       </div>
 
       {/* Categories Section */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <h2 style={{ color: '#011F5B' }} className="text-2xl font-bold mb-2 inline-block pb-1">Browse by Category</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6 mt-6">
           {categories.map((category) => (
             <a
               key={category.name}
               href={`/category/${encodeURIComponent(category.name)}`}
+              onClick={handleCategoryClick(category.name)}
               style={{ backgroundColor: '#FFFFFF', color: '#011F5B', border: '1px solid #011F5B' }}
               className="flex flex-col items-center justify-center p-4 rounded-lg shadow-sm hover:opacity-90 transition-shadow duration-200"
             >
               <span className="text-4xl mb-2">{category.icon}</span>
               <span className="text-sm font-medium">{category.name}</span>
             </a>
-          ))}
-        </div>
-      </div>
-
-      {/* Featured Items Section */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <h2 style={{ color: '#011F5B' }} className="text-2xl font-bold mb-2 inline-block pb-1">Featured Items</h2>
-        <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8 mt-6">
-          {featuredItems.map((item) => (
-            <div key={item.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #011F5B' }} className="group relative rounded-lg p-4">
-              <div className="h-64 w-full bg-gray-200 flex items-center justify-center text-gray-400 rounded">
-                [Image Placeholder]
-              </div>
-              <div className="mt-4 flex justify-between">
-                <div>
-                  <h3 style={{ color: '#011F5B' }} className="text-sm">
-                    <a href={`/items/${item.id}`}>
-                      <span aria-hidden="true" className="absolute inset-0" />
-                      {item.title}
-                    </a>
-                  </h3>
-                  <p style={{ color: '#990000' }} className="mt-1 text-sm">{item.category}</p>
-                </div>
-                <p style={{ color: '#990000' }} className="text-sm font-medium">${item.price}</p>
-              </div>
-            </div>
           ))}
         </div>
       </div>

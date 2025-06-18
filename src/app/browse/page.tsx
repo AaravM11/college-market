@@ -1,7 +1,9 @@
+"use client";
+import { useUser } from '@/context/UserContext';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import ProductImageCarousel from '@/components/ProductImageCarousel';
-import { headers } from 'next/headers';
-import { Suspense } from 'react';
 
 const allowedCategories = [
   'Textbooks',
@@ -13,24 +15,31 @@ const allowedCategories = [
   'Other',
 ];
 
-async function getItems({ search, category }: { search?: string; category?: string }) {
-  const host = (headers() as any).get('host');
-  const protocol = host?.includes('localhost') ? 'http' : 'https';
-  const baseUrl = `${protocol}://${host}`;
-  let url = `${baseUrl}/api/items`;
-  const params = [];
-  if (category && allowedCategories.includes(category)) params.push(`category=${encodeURIComponent(category)}`);
-  if (search) params.push(`search=${encodeURIComponent(search)}`);
-  if (params.length) url += `?${params.join('&')}`;
-  const res = await fetch(url, { cache: 'no-store' });
-  const data = await res.json();
-  return data.items || [];
-}
+export default function BrowsePage() {
+  const { user, loading } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [items, setItems] = useState<any[]>([]);
+  const [fetching, setFetching] = useState(true);
 
-export default async function BrowsePage({ searchParams }: { searchParams: { search?: string; category?: string } }) {
-  const search = searchParams.search || '';
-  const category = searchParams.category || '';
-  const items = await getItems({ search, category });
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/?login=1');
+    }
+  }, [user, loading, router]);
+
+  useEffect(() => {
+    if (user) {
+      setFetching(true);
+      fetch(`/api/items?search=${searchParams.get('search') || ''}&category=${searchParams.get('category') || ''}`)
+        .then(res => res.json())
+        .then(data => setItems(data.items || []))
+        .finally(() => setFetching(false));
+    }
+  }, [user, searchParams]);
+
+  if (loading || !user || fetching) return null;
+
   return (
     <>
       <Navbar />
@@ -40,14 +49,14 @@ export default async function BrowsePage({ searchParams }: { searchParams: { sea
           <input
             type="text"
             name="search"
-            defaultValue={search}
+            defaultValue={searchParams.get('search') || ''}
             placeholder="Search items..."
             className="w-full md:w-1/2 rounded-md border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-[#990000]"
             style={{ color: '#011F5B' }}
           />
           <select
             name="category"
-            defaultValue={category}
+            defaultValue={searchParams.get('category') || ''}
             className="w-full md:w-1/4 rounded-md border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-[#990000]"
             style={{ color: '#011F5B' }}
           >
@@ -68,7 +77,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: { sea
           <div className="text-gray-600 text-lg">No items found. Try a different search or category.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {items.map((item: any) => (
+            {items.map((item) => (
               <div key={item._id} className="bg-white rounded-lg shadow p-5 flex flex-col gap-3">
                 <ProductImageCarousel imageUrls={item.imageUrls} alt={item.title} />
                 <div className="flex-1">
