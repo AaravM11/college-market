@@ -51,12 +51,21 @@ export default function Home() {
   const { user, loading } = useUser();
   const searchParams = useSearchParams();
   const [loginOpen, setLoginOpen] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [forceSignup, setForceSignup] = useState(false);
   const router = useRouter();
   useEffect(() => {
     if (searchParams.get('login') === '1') {
       setLoginOpen(true);
     }
-  }, [searchParams]);
+    if (searchParams.get('error') === 'upenn') {
+      setLoginError('You must use a valid UPenn email address to sign up.');
+      setLoginOpen(true);
+      setForceSignup(true);
+      // Remove error from URL after showing
+      router.replace('/?login=1');
+    }
+  }, [searchParams, router]);
   if (loading) return null;
 
   const handleCategoryClick = (category: string) => (e: React.MouseEvent) => {
@@ -84,7 +93,7 @@ export default function Home() {
             >
               ×
             </button>
-            <Login onSuccess={() => setLoginOpen(false)} />
+            <Login onSuccess={() => setLoginOpen(false)} initialError={loginError || undefined} initialIsSignup={forceSignup} />
           </div>
         </div>
       )}

@@ -20,9 +20,10 @@ interface AppUser {
 interface UserContextType {
   user: AppUser | null;
   loading: boolean;
+  setUser: React.Dispatch<React.SetStateAction<AppUser | null>>;
 }
 
-const UserContext = createContext<UserContextType>({ user: null, loading: true });
+const UserContext = createContext<UserContextType>({ user: null, loading: true, setUser: () => {} });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
@@ -60,7 +61,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, loading }}>
+    <UserContext.Provider value={{ user, loading, setUser }}>
       {children}
     </UserContext.Provider>
   );

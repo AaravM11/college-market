@@ -1,14 +1,28 @@
 'use client';
 import React, { useState } from 'react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '@/lib/firebaseAuth';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth';
+import { useUser } from '@/context/UserContext';
 
-export default function Login({ onSuccess }: { onSuccess?: () => void }) {
-  const [isSignup, setIsSignup] = useState(false);
+export default function Login({ onSuccess, initialError, initialIsSignup }: { onSuccess?: () => void, initialError?: string, initialIsSignup?: boolean }) {
+  const { setUser } = useUser();
+  const [isSignup, setIsSignup] = useState(initialIsSignup || false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState(initialError || '');
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (initialError) setError(initialError);
+  }, [initialError]);
+
+  React.useEffect(() => {
+    if (typeof initialIsSignup === 'boolean') setIsSignup(initialIsSignup);
+  }, [initialIsSignup]);
+
+  const isUpennEmail = (email: string) => /\.upenn\.edu$/i.test(email);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,6 +31,16 @@ export default function Login({ onSuccess }: { onSuccess?: () => void }) {
     try {
       let userCredential;
       if (isSignup) {
+        if (!isUpennEmail(email)) {
+          setError('You must use a valid UPenn email address to sign up.');
+          setLoading(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          setError('Passwords do not match.');
+          setLoading(false);
+          return;
+        }
         userCredential = await signUpWithEmail(email, password);
         // Create user in DB
         const user = getAuth().currentUser;
@@ -29,6 +53,7 @@ export default function Login({ onSuccess }: { onSuccess?: () => void }) {
               name: user.displayName || '',
               email: user.email,
               photoURL: user.photoURL || '',
+              contactInfo: { phone },
             }),
           });
         }
@@ -51,6 +76,14 @@ export default function Login({ onSuccess }: { onSuccess?: () => void }) {
       // Create user in DB
       const user = getAuth().currentUser;
       if (user) {
+        if (!user.email || !isUpennEmail(user.email)) {
+          await signOut(getAuth());
+          setUser(null);
+          if (typeof window !== 'undefined') {
+            window.location.href = '/?login=1&error=upenn';
+          }
+          return;
+        }
         await fetch('/api/users/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -103,8 +136,27 @@ export default function Login({ onSuccess }: { onSuccess?: () => void }) {
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
-          style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #011F5B' }}
+          style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #011F5B', marginBottom: 8 }}
         />
+        {isSignup && (
+          <>
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+              style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #011F5B', marginBottom: 8 }}
+            />
+            <input
+              type="tel"
+              placeholder="Phone Number (optional)"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #011F5B' }}
+            />
+          </>
+        )}
       </div>
       {error && <div style={{ color: '#990000', marginBottom: 12, textAlign: 'center' }}>{error}</div>}
       <button type="submit" disabled={loading} style={{ width: '100%', background: '#990000', color: '#fff', padding: 10, borderRadius: 6, fontWeight: 600, border: 'none', marginBottom: 12 }}>
